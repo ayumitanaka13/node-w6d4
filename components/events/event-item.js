@@ -1,4 +1,5 @@
 import classes from "./event-item.module.css";
+import Button from "../UI/button";
 
 const EventItem = (props) => {
   const { id, title, location, date, image } = props;
@@ -15,10 +16,10 @@ const EventItem = (props) => {
           <div className={classes.address}>{location}</div>
         </div>
         <div className={classes.actions}>
-          <button>
+          <Button link={`/events/${id}`}>
             <span>Explore Event</span>
             <span className={classes.icon}>👉</span>
-          </button>
+          </Button>
         </div>
       </div>
     </li>

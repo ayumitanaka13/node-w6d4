@@ -1,5 +1,8 @@
 import { useRouter } from "next/router";
 import { getEventById } from "../../data";
+import EventHeader from "../../components/event-detail/event-header";
+import EventLogistics from "../../components/event-detail/event-logistics";
+import EventContent from "../../components/event-detail/event-content";
 
 const EventDetailPage = () => {
   const router = useRouter();
@@ -8,20 +11,25 @@ const EventDetailPage = () => {
 
   if (!event) {
     return (
-      <>
+      <div>
         <p>No event found!</p>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
-      <h1>{event.title}</h1>
-      <p>{event.date}</p>
-      <p>{event.location}</p>
-      <img src={"/" + event.image} alt="" />
-      <p>{event.description}</p>
-    </>
+    <div>
+      <EventHeader title={event.title} />
+      <EventLogistics
+        date={event.date}
+        location={event.location}
+        image={event.image}
+        imageAlt={event.title}
+      ></EventLogistics>
+      <EventContent>
+        <p>{event.description}</p>
+      </EventContent>
+    </div>
   );
 };
 
