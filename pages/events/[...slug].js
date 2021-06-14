@@ -1,14 +1,36 @@
 import { useRouter } from "next/router";
+import { useState, useEffect } from "react";
+import useSWR from "swr";
 
 import EventList from "../../components/events/event-list";
 import Button from "../../components/UI/button";
-import { getFilteredEvents } from "../../data";
+import ResultsTitle from "../../components/events/results-title";
+import ErrorAlert from "../../components/ui/error-alert";
+// import { getFilteredEvents } from "../../data";
 
 const FilteredEventsPage = () => {
+  const [loadedEvents, setLoadedEvents] = useState();
   const router = useRouter();
+
   const filterData = router.query.slug;
 
-  if (!filterData) {
+  const { data, error } = useSWR(process.env.NEXT_PUBLIC_FIREBASE_DB);
+
+  useEffect(() => {
+    if (data) {
+      const events = [];
+
+      for (const key in data) {
+        events.push({
+          id: key,
+          ...data[key],
+        });
+      }
+      setLoadedEvents(events);
+    }
+  }, [data]);
+
+  if (!loadedEvents) {
     return <p className="center">Loading...</p>;
   }
 
@@ -20,11 +42,14 @@ const FilteredEventsPage = () => {
     isNaN(numMonth) ||
     numYear < 2021 ||
     numMonth < 1 ||
-    numMonth > 12
+    numMonth > 12 ||
+    error
   ) {
     return (
       <div>
-        <p>Invalid filter. Please adjust your values!</p>
+        <ErrorAlert>
+          <p>Invalid filter. Please adjust your values!</p>
+        </ErrorAlert>
         <div className="center">
           <Button link="/events">Show All Events</Button>
         </div>
@@ -32,15 +57,21 @@ const FilteredEventsPage = () => {
     );
   }
 
-  const filteredEvents = getFilteredEvents({
-    year: numYear,
-    month: numMonth,
+  const filteredEvents = loadedEvents.filter((event) => {
+    const eventDate = new Date(event.date);
+
+    return (
+      eventDate.getFullYear() === numYear &&
+      eventDate.getMonth() === numMonth - 1
+    );
   });
 
   if (!filteredEvents || filteredEvents.length === 0) {
     return (
       <div>
-        <p>No events...</p>
+        <ErrorAlert>
+          <p>No events found for the chosen filter!</p>
+        </ErrorAlert>
         <div className="center">
           <Button link="/events">Show All Events</Button>
         </div>
@@ -48,8 +79,11 @@ const FilteredEventsPage = () => {
     );
   }
 
+  const date = new Date(numYear, numMonth - 1);
+
   return (
     <>
+      <ResultsTitle date={date} />
       <EventList items={filteredEvents} />
     </>
   );
